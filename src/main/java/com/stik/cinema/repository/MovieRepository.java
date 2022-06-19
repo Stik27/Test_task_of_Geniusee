@@ -11,5 +11,7 @@ import com.stik.cinema.persistance.Movie;
 @Repository
 public interface MovieRepository extends JpaRepository<Movie, UUID> {
 	Optional<Movie> findByName(String name);
+
+	boolean existsByName(String name);
 }
 

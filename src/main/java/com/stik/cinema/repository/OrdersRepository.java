@@ -10,5 +10,4 @@ import com.stik.cinema.persistance.Orders;
 @Repository
 public interface OrdersRepository extends JpaRepository<Orders, UUID> {
 
-	void deleteAllByMovieId(UUID id);
 }

@@ -4,11 +4,11 @@ import lombok.Getter;
 
 @Getter
 public class CinemaException extends RuntimeException {
-	private final ErrorCode errorCode;
+	private final ErrorType errorType;
 
-	public CinemaException(ErrorCode errorCode, String message) {
+	public CinemaException(ErrorType errorType, String message) {
 		super(message);
-		this.errorCode = errorCode;
+		this.errorType = errorType;
 	}
 
 }

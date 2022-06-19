@@ -2,7 +2,6 @@ package com.stik.cinema.service;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -11,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.stik.cinema.dto.OrdersDto;
 import com.stik.cinema.dto.OrdersInputDto;
 import com.stik.cinema.exception.CinemaException;
-import com.stik.cinema.exception.ErrorCode;
+import com.stik.cinema.exception.ErrorType;
 import com.stik.cinema.mapper.OrdersMapper;
 import com.stik.cinema.persistance.Orders;
 import com.stik.cinema.repository.MovieRepository;
@@ -21,75 +20,77 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 @Service
+@Transactional
 public class OrdersServiceImpl implements OrdersService {
 	private final OrdersRepository ordersRepository;
 	private final MovieRepository movieRepository;
-
 	private final OrdersMapper mapper;
 
+	@Transactional(readOnly = true)
 	@Override
 	public OrdersDto findById(UUID id) {
 		Orders byId = ordersRepository.findById(id)
-				.orElseThrow(() -> new CinemaException(ErrorCode.NOT_FOUND, "order not found"));
+				.orElseThrow(() -> new CinemaException(ErrorType.NOT_FOUND, "Order doesn't found"));
 		return mapper.toDto(byId);
 	}
 
-	@Transactional
 	@Override
 	public OrdersDto create(OrdersInputDto ordersInput) {
 		if(Objects.nonNull(ordersInput.getMovieId())
 				&& Objects.nonNull(ordersInput.getParticipants())) {
-			if(movieRepository.findById(ordersInput.getMovieId()).isEmpty()) {
-				throw new CinemaException(ErrorCode.NOT_FOUND, "this movie not exists");
-			}
+			checkExistenceMovie(ordersInput.getMovieId());
+			checkParticipants(ordersInput.getParticipants());
 			Orders newOrders = new Orders();
-			newOrders.setId(UUID.randomUUID());
 			newOrders.setMovieId(ordersInput.getMovieId());
 			newOrders.setOrderTime(LocalDateTime.now());
 			newOrders.setParticipants(ordersInput.getParticipants());
 
 			ordersRepository.save(newOrders);
-
 			return mapper.toDto(newOrders);
 		} else {
-			throw new CinemaException(ErrorCode.INTERNAL_SERVER_ERROR, "Not enough information");
+			throw new CinemaException(ErrorType.INTERNAL_SERVER_ERROR, "There is not enough information");
 		}
 	}
 
-	@Transactional
 	@Override
-	public OrdersDto update(OrdersInputDto movieInput) {
+	public OrdersDto update(OrdersInputDto ordersInput) {
+		Orders updatedOrders = ordersRepository.findById(ordersInput.getId())
+				.orElseThrow(()->new CinemaException(ErrorType.NOT_FOUND, "Orders doesn't found"));
 
-		Optional<Orders> ordersOptional = ordersRepository.findById(movieInput.getId());
-		if(ordersOptional.isEmpty()) {
-			throw new CinemaException(ErrorCode.NOT_FOUND, "orders not found");
-		}
-		Orders updateOrders = ordersOptional.get();
-
-		if(!updateOrders.getMovieId().equals(movieInput.getMovieId())
-				&& Objects.nonNull(movieInput.getMovieId())) {
-			updateOrders.setMovieId(movieInput.getMovieId());
+		if(Objects.nonNull(ordersInput.getMovieId())) {
+			checkExistenceMovie(ordersInput.getMovieId());
+			updatedOrders.setMovieId(ordersInput.getMovieId());
 		}
 
-		if(!updateOrders.getOrderTime().equals(movieInput.getOrderTime())
-				&& Objects.nonNull(movieInput.getOrderTime())) {
-			updateOrders.setOrderTime(movieInput.getOrderTime());
+		if( Objects.nonNull(ordersInput.getOrderTime())) {
+			updatedOrders.setOrderTime(ordersInput.getOrderTime());
 		}
 
-		if(!updateOrders.getParticipants().equals(movieInput.getParticipants())
-				&& Objects.nonNull(movieInput.getParticipants())) {
-			updateOrders.setParticipants(movieInput.getParticipants());
+		if(Objects.nonNull(ordersInput.getParticipants())) {
+			checkParticipants(ordersInput.getParticipants());
+			updatedOrders.setParticipants(ordersInput.getParticipants());
 		}
-		return mapper.toDto(updateOrders);
+		return mapper.toDto(updatedOrders);
 	}
 
 	@Override
-	public void deleteOrder(UUID id) {
+	public void delete(UUID id) {
+		if(!ordersRepository.existsById(id)) {
+			throw new CinemaException(ErrorType.NOT_FOUND, "This order doesn't exists");
+		}
 		ordersRepository.deleteById(id);
 	}
 
-	@Override
-	public void deleteAllByMovieId(UUID id) {
-		ordersRepository.deleteAllByMovieId(id);
+	private void checkExistenceMovie(UUID movieId) {
+		if(!movieRepository.existsById(movieId)) {
+			throw new CinemaException(ErrorType.NOT_FOUND, "This movie doesn't exists");
+		}
+	}
+
+	private void checkParticipants(int participants) {
+		if(participants <= 0) {
+			throw new CinemaException(ErrorType.INTERNAL_SERVER_ERROR,
+					"The number of participants must be more than 0");
+		}
 	}
 }

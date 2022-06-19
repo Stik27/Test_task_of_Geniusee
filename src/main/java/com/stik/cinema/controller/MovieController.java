@@ -2,6 +2,8 @@ package com.stik.cinema.controller;
 
 import java.util.UUID;
 
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -24,7 +26,7 @@ public class MovieController {
 	private final MovieService movieService;
 
 	@GetMapping("/{id}")
-	public MovieDto findById(@PathVariable UUID id) {
+	public MovieDto findById(@PathVariable UUID id){
 		return movieService.findById(id);
 	}
 
@@ -39,8 +41,9 @@ public class MovieController {
 	}
 
 	@DeleteMapping("/{id}")
-	public void delete(@PathVariable UUID id) {
+	public ResponseEntity<String> delete(@PathVariable UUID id) {
 		movieService.delete(id);
+		return ResponseEntity.status(200).contentType(MediaType.APPLICATION_JSON).body("ok");
 	}
 
 

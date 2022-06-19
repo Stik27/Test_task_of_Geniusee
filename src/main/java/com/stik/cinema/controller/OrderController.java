@@ -1,5 +1,7 @@
 package com.stik.cinema.controller;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -19,7 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/order")
+@RequestMapping("/api/orders")
 public class OrderController {
 	private final OrdersService ordersService;
 
@@ -39,8 +41,9 @@ public class OrderController {
 	}
 
 	@DeleteMapping("/{id}")
-	public void delete(@PathVariable UUID id) {
-		ordersService.deleteOrder(id);
+	public Map<String, String> delete(@PathVariable UUID id) {
+		ordersService.delete(id);
+		return Collections.singletonMap("response", "deletion was successful");
 	}
 }
 

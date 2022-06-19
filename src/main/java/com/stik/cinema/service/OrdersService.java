@@ -15,7 +15,7 @@ public interface OrdersService {
 
 	OrdersDto update(OrdersInputDto movieInput);
 
-	void deleteOrder(UUID id);
+	void delete(UUID id);
 
-	void deleteAllByMovieId(UUID id);
+
 }
