@@ -1,6 +1,6 @@
 package com.stik.cinema.persistance;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -36,7 +36,7 @@ public class Movie {
 	private String name;
 
 	@Column(name = "release_date", nullable = false)
-	private LocalDateTime releaseDate;
+	private LocalDate releaseDate;
 
 	@Column(name = "cost", nullable = false)
 	private Integer cost;

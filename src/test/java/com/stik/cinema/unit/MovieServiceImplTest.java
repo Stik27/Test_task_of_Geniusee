@@ -6,7 +6,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -15,6 +16,11 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.stik.cinema.dto.MovieDto;
@@ -51,7 +57,7 @@ class MovieServiceImplTest {
 	@Test
 	void deleteTest() {
 		Movie movie = createMovie();
-		when(movieRepository.findById(movie.getId())).thenReturn(Optional.of(movie));
+		when(movieRepository.existsById(movie.getId())).thenReturn(true);
 
 		movieService.delete(movie.getId());
 
@@ -96,7 +102,7 @@ class MovieServiceImplTest {
 
 		returnMovie.setId(movie.getId());
 		returnMovie.setName("movieInput");
-		returnMovie.setReleaseDate(LocalDateTime.now().minusDays(1));
+		returnMovie.setReleaseDate(LocalDate.now().minusDays(1));
 		returnMovie.setCost(111);
 
 		when(movieRepository.findById(movieInputDto.getId())).thenReturn(Optional.of(returnMovie));
@@ -128,7 +134,7 @@ class MovieServiceImplTest {
 		movieInputDto.setName("test");
 
 		when(movieRepository.findById(movieInputDto.getId())).thenReturn(Optional.of(movie));
-		when(movieRepository.findByName(movieInputDto.getName())).thenReturn(Optional.of(movie));
+		when(movieRepository.existsByName(movieInputDto.getName())).thenReturn(true);
 
 		assertThatThrownBy(() -> movieService.update(movieInputDto))
 				.isInstanceOf(CinemaException.class)
@@ -157,11 +163,24 @@ class MovieServiceImplTest {
 				.matches((error) -> ((CinemaException) error).getErrorType() == ErrorType.INTERNAL_SERVER_ERROR);
 	}
 
+	@Test
+	void searchMoviesTest() {
+		Movie movie = createMovie();
+		MovieInputDto movieInputDto = createMovieInputDto(movie);
+		PageRequest pageRequest = PageRequest.of(0, 1);
+		when(movieRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(new PageImpl<>(List.of(movie)));
+		Page<MovieDto> page = movieService.searchMovies(movieInputDto, pageRequest);
+		verify(movieRepository).findAll(any(Specification.class), any(Pageable.class));
+		Optional<MovieDto> first = page.get().findFirst();
+		assertThat(first).isPresent();
+		assertThat(first.get().getName()).isEqualTo(movie.getName());
+	}
+
 	private Movie createMovie() {
 		Movie movie = new Movie();
 		movie.setId(UUID.randomUUID());
 		movie.setName("name");
-		movie.setReleaseDate(LocalDateTime.now());
+		movie.setReleaseDate(LocalDate.now());
 		movie.setCost(5);
 		return movie;
 	}

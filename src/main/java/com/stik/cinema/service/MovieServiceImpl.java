@@ -1,8 +1,14 @@
 package com.stik.cinema.service;
 
+import static org.springframework.data.jpa.domain.Specification.where;
+
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +19,7 @@ import com.stik.cinema.exception.ErrorType;
 import com.stik.cinema.mapper.MovieMapper;
 import com.stik.cinema.persistance.Movie;
 import com.stik.cinema.repository.MovieRepository;
+import com.stik.cinema.specification.MovieSpecifications;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,6 +36,16 @@ public class MovieServiceImpl implements MovieService {
 		Movie byId = movieRepository.findById(id).orElseThrow(() -> new CinemaException(ErrorType.NOT_FOUND,
 				"This movie doesn't found"));
 		return mapper.toDto(byId);
+	}
+
+	@Override
+	public Page<MovieDto> searchMovies(MovieInputDto movieInputDto, Pageable pageable) {
+		Page<Movie> page = movieRepository.findAll(
+				where(MovieSpecifications.likeName(movieInputDto.getName()))
+						.and(MovieSpecifications.equalReleaseDate(movieInputDto.getReleaseDate()))
+						.and(MovieSpecifications.equalCost(movieInputDto.getCost())), pageable);
+		List<MovieDto> movieDto = page.get().map(mapper::toDto).toList();
+		return new PageImpl<>(movieDto);
 	}
 
 	@Override
@@ -57,7 +74,7 @@ public class MovieServiceImpl implements MovieService {
 		Movie updatedMovie = movieRepository.findById(movieInput.getId())
 				.orElseThrow(() -> new CinemaException(ErrorType.NOT_FOUND, "This movie doesn't found"));
 
-		if(Objects.nonNull(movieInput.getName())) {
+		if(!Objects.equals(movieInput.getName(), updatedMovie.getName()) && Objects.nonNull(movieInput.getName())) {
 			checkForDuplicate(movieInput.getName());
 			updatedMovie.setName(movieInput.getName());
 		}
@@ -70,7 +87,6 @@ public class MovieServiceImpl implements MovieService {
 			checkCost(movieInput.getCost());
 			updatedMovie.setCost(movieInput.getCost());
 		}
-
 		return mapper.toDto(updatedMovie);
 	}
 
@@ -92,6 +108,5 @@ public class MovieServiceImpl implements MovieService {
 		if(cost <= 0) {
 			throw new CinemaException(ErrorType.INTERNAL_SERVER_ERROR, "The cost must be greater than 0");
 		}
-
 	}
 }

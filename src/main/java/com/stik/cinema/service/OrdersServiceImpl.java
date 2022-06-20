@@ -1,9 +1,15 @@
 package com.stik.cinema.service;
 
-import java.time.LocalDateTime;
+import static org.springframework.data.jpa.domain.Specification.where;
+
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +21,7 @@ import com.stik.cinema.mapper.OrdersMapper;
 import com.stik.cinema.persistance.Orders;
 import com.stik.cinema.repository.MovieRepository;
 import com.stik.cinema.repository.OrdersRepository;
+import com.stik.cinema.specification.OrdersSpecifications;
 
 import lombok.RequiredArgsConstructor;
 
@@ -35,6 +42,16 @@ public class OrdersServiceImpl implements OrdersService {
 	}
 
 	@Override
+	public Page<OrdersDto> searchOrders(OrdersInputDto movieInputDto, Pageable pageable) {
+		Page<Orders> page = ordersRepository.findAll(
+				where(OrdersSpecifications.equalMovieId(movieInputDto.getMovieId()))
+						.and(OrdersSpecifications.equalOrderTime(movieInputDto.getOrderTime()))
+						.and(OrdersSpecifications.equalParticipants(movieInputDto.getParticipants())), pageable);
+		List<OrdersDto> movieDto = page.get().map(mapper::toDto).toList();
+		return new PageImpl<>(movieDto);
+	}
+
+	@Override
 	public OrdersDto create(OrdersInputDto ordersInput) {
 		if(Objects.nonNull(ordersInput.getMovieId())
 				&& Objects.nonNull(ordersInput.getParticipants())) {
@@ -42,7 +59,7 @@ public class OrdersServiceImpl implements OrdersService {
 			checkParticipants(ordersInput.getParticipants());
 			Orders newOrders = new Orders();
 			newOrders.setMovieId(ordersInput.getMovieId());
-			newOrders.setOrderTime(LocalDateTime.now());
+			newOrders.setOrderTime(LocalDate.now());
 			newOrders.setParticipants(ordersInput.getParticipants());
 
 			ordersRepository.save(newOrders);
@@ -55,14 +72,14 @@ public class OrdersServiceImpl implements OrdersService {
 	@Override
 	public OrdersDto update(OrdersInputDto ordersInput) {
 		Orders updatedOrders = ordersRepository.findById(ordersInput.getId())
-				.orElseThrow(()->new CinemaException(ErrorType.NOT_FOUND, "Orders doesn't found"));
+				.orElseThrow(() -> new CinemaException(ErrorType.NOT_FOUND, "Orders doesn't found"));
 
 		if(Objects.nonNull(ordersInput.getMovieId())) {
 			checkExistenceMovie(ordersInput.getMovieId());
 			updatedOrders.setMovieId(ordersInput.getMovieId());
 		}
 
-		if( Objects.nonNull(ordersInput.getOrderTime())) {
+		if(Objects.nonNull(ordersInput.getOrderTime())) {
 			updatedOrders.setOrderTime(ordersInput.getOrderTime());
 		}
 

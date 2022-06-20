@@ -1,6 +1,6 @@
 package com.stik.cinema.persistance;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -31,7 +31,7 @@ public class Orders {
 	private UUID movieId;
 
 	@Column(name = "order_time", nullable = false)
-	private LocalDateTime orderTime;
+	private LocalDate orderTime;
 
 	@Column(name = "participants", nullable = false)
 	private Integer participants;

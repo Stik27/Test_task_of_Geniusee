@@ -1,6 +1,6 @@
 package com.stik.cinema.dto;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,7 +10,7 @@ import lombok.Data;
 public class MovieDto {
 	private UUID id;
 	private String name;
-	private LocalDateTime releaseDate;
+	private LocalDate releaseDate;
 	private Integer cost;
 	private List<OrdersDto> orders;
 
