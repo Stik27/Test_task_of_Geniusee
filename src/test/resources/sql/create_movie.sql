@@ -1,0 +1,5 @@
+INSERT INTO movie(id, name, release_date, cost)
+VALUES('00000000-0000-0000-0000-000000000000', 'test', TO_TIMESTAMP('2022-06-19', 'YYYY-MM-DD'),1);
+
+INSERT INTO movie(id, name, release_date, cost)
+VALUES('00000000-0000-0000-0000-000000000001', 'pest', TO_TIMESTAMP('2022-06-11', 'YYYY-MM-DD'),1);
