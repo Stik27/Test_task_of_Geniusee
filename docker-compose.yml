@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9
+      POSTGRES_DB: cinema
+    ports:
+      - "5432:5432"

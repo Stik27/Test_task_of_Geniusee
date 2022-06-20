@@ -1,0 +1,36 @@
+plugins {
+    id 'org.springframework.boot' version '2.6.8'
+    id 'java'
+}
+
+group = 'com.stik'
+version = '0.0.1'
+sourceCompatibility = '17'
+archivesBaseName = 'cinema-0.0.1'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor:2.6.8'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.1.Final'
+    implementation 'org.projectlombok:lombok:1.18.24'
+    implementation 'org.mapstruct:mapstruct:1.5.1.Final'
+    implementation 'org.liquibase:liquibase-core:4.11.0'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.12.5'
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.6.8'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc:2.6.8'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.6.8'
+
+    runtimeOnly 'org.postgresql:postgresql:42.3.0'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test:2.6.8'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
